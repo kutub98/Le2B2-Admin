@@ -1,21 +1,26 @@
 import { Request, Response } from 'express'
 import { StudentService } from './student.service'
+import studentValidationSchema from './student.validation'
 
 const createStudent = async (req: Request, res: Response) => {
   try {
     const { studentData } = req.body
-    const result = await StudentService.createStudentIntoDB(studentData)
-
+    const ZodParseData = studentValidationSchema.parse(studentData)
+    const result = await StudentService.createStudentIntoDB(ZodParseData)
     res.status(200).json({
       success: true,
       message: 'Create Student Successfully',
       data: result,
     })
-    return result
-  } catch (err) {
-    console.log(err)
+  } catch (err: any) {
+    res.status(400).json({
+      success: false,
+      message: err.message || 'Something went wrong!',
+      error: err,
+    })
   }
 }
+
 // get all student function
 
 const getAllStudent = async (req: Request, res: Response) => {
@@ -26,8 +31,12 @@ const getAllStudent = async (req: Request, res: Response) => {
       message: 'Students Data retrived Successfully',
       allStudent: result,
     })
-  } catch (err) {
-    console.log(console.error)
+  } catch (err: any) {
+    res.status(400).json({
+      success: false,
+      message: err.message || 'Something went wrong!',
+      error: err,
+    })
   }
 }
 
@@ -43,12 +52,34 @@ const singleStudentData = async (req: Request, res: Response) => {
       message: 'Successfully retrived single Student Data',
       singleStudentData: result,
     })
-  } catch (err) {
-    console.log(err)
+  } catch (err: any) {
+    res.status(400).json({
+      success: false,
+      message: 'Something went wrong!' || err.message,
+      error: err,
+    })
+  }
+}
+
+const deletedStudent = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const result = await StudentService.deletedStudentFromDb(id)
+    res.status(200).json({
+      success: true,
+      message: 'Successfully deleted this student',
+      data: result,
+    })
+  } catch (err: any) {
+    res.status(400).json({
+      success: false,
+      error: err.message || 'Something went wrong',
+    })
   }
 }
 export const studentController = {
   createStudent,
   getAllStudent,
   singleStudentData,
+  deletedStudent,
 }
